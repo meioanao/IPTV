@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista IPTV Unificada - Status & Download</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --accent-hover: #0284c7;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --success: #22c55e;
+            --border: #334155;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 780px;
+            width: 100%;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--success);
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        p.subtitle {
+            color: var(--muted);
+            margin-bottom: 2rem;
+        }
+        .hero-stat {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .hero-stat .number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--accent);
+            display: block;
+            line-height: 1.1;
+        }
+        .hero-stat .desc {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-top: 0.35rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+            gap: 0.85rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: rgba(15, 23, 42, 0.45);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+        .stat-count {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        .link-box {
+            background: #0b1120;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        .link-box code {
+            color: var(--accent);
+            font-size: 0.95rem;
+            word-break: break-all;
+            flex: 1;
+        }
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 0.6rem 1.1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: var(--accent-hover);
+            color: #fff;
+        }
+        .footer {
+            font-size: 0.85rem;
+            color: var(--muted);
+            text-align: center;
+            border-top: 1px solid var(--border);
+            padding-top: 1.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="badge">
+            <span class="badge-dot"></span>
+            Atualizada Automaticamente a cada 12h
+        </div>
+        <h1>Lista M3U Unificada</h1>
+        <p class="subtitle">Canais verificados, deduplicados e categorizados automaticamente.</p>
+
+        <div class="hero-stat">
+            <span class="number">2175</span>
+            <span class="desc">Canais Ativos e Online (de 2764 links únicos testados)</span>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-count">258</span>
+                <span class="stat-label">Brasil Abertos</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-count">143</span>
+                <span class="stat-label">Filmes e Séries BR</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-count">350</span>
+                <span class="stat-label">Esportes</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-count">935</span>
+                <span class="stat-label">EUA Abertos</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-count">489</span>
+                <span class="stat-label">Filmes e Séries EUA</span>
+            </div>
+        </div>
+
+        <h3 style="margin-bottom: 0.6rem; font-size: 1rem;">Link Direto da Lista M3U:</h3>
+        <div class="link-box">
+            <code id="m3u-url">lista_unificada.m3u</code>
+            <div class="btn-group">
+                <button class="btn" onclick="copyUrl()">Copiar Link</button>
+                <a class="btn" href="lista_unificada.m3u" download>Baixar .M3U</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            Última verificação: <strong>17/11/2026 15:15:57 UTC</strong>
+        </div>
+    </div>
+
+    <script>
+        const fullUrl = new URL('lista_unificada.m3u', window.location.href).href;
+        document.getElementById('m3u-url').textContent = fullUrl;
+
+        function copyUrl() {
+            navigator.clipboard.writeText(fullUrl).then(() => {
+                alert('Link copiado para a área de transferência!');
+            });
+        }
+    </script>
+</body>
+</html>
