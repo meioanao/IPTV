@@ -21,9 +21,6 @@ concurrency:
 jobs:
   update-and-publish:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout do repositório
@@ -56,14 +53,22 @@ jobs:
             git push origin HEAD:${{ github.ref_name }}
           fi
 
-      - name: Configurar GitHub Pages
+      - name: Configurar GitHub Pages (opcional/automático)
+        id: pages_cfg
+        continue-on-error: true
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Empacotar pasta docs/ para o GitHub Pages
+        if: steps.pages_cfg.outcome == 'success'
+        continue-on-error: true
         uses: actions/upload-pages-artifact@v3
         with:
           path: './docs'
 
       - name: Publicar no GitHub Pages
+        if: steps.pages_cfg.outcome == 'success'
         id: deployment
+        continue-on-error: true
         uses: actions/deploy-pages@v4
