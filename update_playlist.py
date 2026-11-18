@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 """
 Unificador e Verificador de Listas M3U de IPTV.
-- Baixa múltiplas listas públicas (incluindo Globo, Band, SBT, Record News, TV Cultura)
-- Filtra apenas canais da América do Sul, América do Norte e Europa (remove Oriente Médio, Ásia, África)
-- Remove canais de Anime
-- Remove duplicados, padroniza categorias, verifica disponibilidade em paralelo (timeout 5s)
-- Gera docs/lista_unificada.m3u, docs/index.html (com Grid visual) e docs/relatorio_canais.md
+Regras de Filtragem Regional e por Tipo:
+- Brasil: Canais Abertos (incluindo Globo, Band, SBT, Cultura), Filmes e Séries, Esportes, Notícias, Entretenimento, etc.
+- Peru, Chile, Colômbia, Bolívia, Venezuela (e demais da América do Sul): APENAS Esportes.
+- América do Norte: APENAS EUA, México e Canadá, e APENAS canais de Notícias, Entretenimento (e Filmes/Séries) e Esportes.
+- Europa: APENAS canais de Esportes e Notícias.
+- Sem Oriente Médio, Ásia, África, Oceania e sem Anime.
 """
 
 import concurrent.futures
@@ -24,13 +25,13 @@ import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Canais brasileiros essenciais garantidos (Globo, Band, SBT, Cultura, Record News)
 ESSENTIAL_BR_CHANNELS = [
     {
         "name": "Rede Globo (TV Clube HD)",
         "category": "Brasil Abertos",
         "genre": "Canais Abertos / Variedades",
         "country": "Brasil",
+        "region": "BR",
         "logo": "https://i.imgur.com/O02TF2r.png",
         "extinf": '#EXTINF:-1 tvg-id="RedeGlobo.br@HD" tvg-logo="https://i.imgur.com/O02TF2r.png" group-title="Brasil Abertos",Rede Globo (TV Clube HD)',
         "extras": "",
@@ -41,6 +42,7 @@ ESSENTIAL_BR_CHANNELS = [
         "category": "Brasil Abertos",
         "genre": "Canais Abertos / Variedades",
         "country": "Brasil",
+        "region": "BR",
         "logo": "https://i.imgur.com/O02TF2r.png",
         "extinf": '#EXTINF:-1 tvg-id="TVGloboBrasilia.br@HD" tvg-logo="https://i.imgur.com/O02TF2r.png" group-title="Brasil Abertos",TV Globo Brasília (1080p)',
         "extras": "",
@@ -51,6 +53,7 @@ ESSENTIAL_BR_CHANNELS = [
         "category": "Brasil Abertos",
         "genre": "Canais Abertos / Variedades",
         "country": "Brasil",
+        "region": "BR",
         "logo": "https://i.imgur.com/O02TF2r.png",
         "extinf": '#EXTINF:-1 tvg-id="TVGloboBahia.br@HD" tvg-logo="https://i.imgur.com/O02TF2r.png" group-title="Brasil Abertos",TV Globo Bahia (FHD)',
         "extras": "",
@@ -61,6 +64,7 @@ ESSENTIAL_BR_CHANNELS = [
         "category": "Brasil Abertos",
         "genre": "Notícias",
         "country": "Brasil",
+        "region": "BR",
         "logo": "https://i.imgur.com/3yZyaCm.png",
         "extinf": '#EXTINF:-1 tvg-id="GloboNews.br@HD" tvg-logo="https://i.imgur.com/3yZyaCm.png" group-title="Brasil Abertos",GloboNews (1080p)',
         "extras": "",
@@ -69,8 +73,9 @@ ESSENTIAL_BR_CHANNELS = [
     {
         "name": "Globoplay Novelas / Viva (1080p)",
         "category": "Filmes e Séries BR",
-        "genre": "Filmes e Séries",
+        "genre": "Entretenimento",
         "country": "Brasil",
+        "region": "BR",
         "logo": "https://i.ibb.co/m5TBCDL2/Globoplay-Novelas-1.png",
         "extinf": '#EXTINF:-1 tvg-id="GloboplayNovelas.br@HD" tvg-logo="https://i.ibb.co/m5TBCDL2/Globoplay-Novelas-1.png" group-title="Filmes e Séries BR",Globoplay Novelas / Viva (1080p)',
         "extras": "",
@@ -81,6 +86,7 @@ ESSENTIAL_BR_CHANNELS = [
         "category": "Esportes",
         "genre": "Esportes",
         "country": "Brasil",
+        "region": "BR",
         "logo": "https://i.imgur.com/O02TF2r.png",
         "extinf": '#EXTINF:-1 tvg-id="GEFast.br@HD" tvg-logo="https://i.imgur.com/O02TF2r.png" group-title="Esportes",GE Fast - Globo Esporte (1080p)',
         "extras": "",
@@ -91,6 +97,7 @@ ESSENTIAL_BR_CHANNELS = [
         "category": "Brasil Abertos",
         "genre": "Canais Abertos / Variedades",
         "country": "Brasil",
+        "region": "BR",
         "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Logotipo_da_Rede_Bandeirantes.svg/512px-Logotipo_da_Rede_Bandeirantes.svg.png",
         "extinf": '#EXTINF:-1 tvg-id="Band.br@HD" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Logotipo_da_Rede_Bandeirantes.svg/512px-Logotipo_da_Rede_Bandeirantes.svg.png" group-title="Brasil Abertos",Band (Rede Bandeirantes / Arapuan HD)',
         "extras": "",
@@ -101,6 +108,7 @@ ESSENTIAL_BR_CHANNELS = [
         "category": "Esportes",
         "genre": "Esportes",
         "country": "Brasil",
+        "region": "BR",
         "logo": "https://i.imgur.com/Im17222.png",
         "extinf": '#EXTINF:-1 tvg-id="BandSports.br@HD" tvg-logo="https://i.imgur.com/Im17222.png" group-title="Esportes",Band Sports (HD)',
         "extras": "",
@@ -111,6 +119,7 @@ ESSENTIAL_BR_CHANNELS = [
         "category": "Brasil Abertos",
         "genre": "Canais Abertos / Variedades",
         "country": "Brasil",
+        "region": "BR",
         "logo": "https://i.imgur.com/tc1ALuu.png",
         "extinf": '#EXTINF:-1 tvg-id="SBTNacional.br@HD" tvg-logo="https://i.imgur.com/tc1ALuu.png" group-title="Brasil Abertos",SBT Nacional (HD)',
         "extras": "",
@@ -119,8 +128,9 @@ ESSENTIAL_BR_CHANNELS = [
     {
         "name": "TV Cultura (HD)",
         "category": "Brasil Abertos",
-        "genre": "Documentários e Cultura",
+        "genre": "Cultura e Documentários",
         "country": "Brasil",
+        "region": "BR",
         "logo": "https://i.imgur.com/3f1c7t0.png",
         "extinf": '#EXTINF:-1 tvg-id="TVCultura.br@HD" tvg-logo="https://i.imgur.com/3f1c7t0.png" group-title="Brasil Abertos",TV Cultura (HD)',
         "extras": "",
@@ -195,70 +205,67 @@ CATEGORY_ORDER = [
     "Filmes e Séries EUA",
 ]
 
-# Apenas países da América do Sul, América do Norte e Europa
-ALLOWED_COUNTRIES: Dict[str, str] = {
-    # América do Sul
-    "br": "Brasil",
-    "ar": "Argentina",
-    "cl": "Chile",
-    "co": "Colômbia",
-    "pe": "Peru",
-    "uy": "Uruguai",
-    "py": "Paraguai",
-    "ec": "Equador",
-    "bo": "Bolívia",
-    "ve": "Venezuela",
-    # América do Norte e Central
-    "us": "Estados Unidos",
-    "ca": "Canadá",
-    "mx": "México",
-    "cr": "Costa Rica",
-    "pa": "Panamá",
-    "do": "República Dominicana",
-    "pr": "Porto Rico",
-    "gt": "Guatemala",
-    "hn": "Honduras",
-    "sv": "El Salvador",
-    "cu": "Cuba",
-    # Europa
-    "pt": "Portugal",
-    "es": "Espanha",
-    "uk": "Reino Unido",
-    "gb": "Reino Unido",
-    "fr": "França",
-    "de": "Alemanha",
-    "it": "Itália",
-    "nl": "Países Baixos",
-    "be": "Bélgica",
-    "ch": "Suíça",
-    "at": "Áustria",
-    "ie": "Irlanda",
-    "se": "Suécia",
-    "no": "Noruega",
-    "dk": "Dinamarca",
-    "fi": "Finlândia",
-    "pl": "Polônia",
-    "cz": "República Tcheca",
-    "sk": "Eslováquia",
-    "hu": "Hungria",
-    "ro": "Romênia",
-    "bg": "Bulgária",
-    "gr": "Grécia",
-    "hr": "Croácia",
-    "rs": "Sérvia",
-    "si": "Eslovênia",
-    "ua": "Ucrânia",
-    "lt": "Lituânia",
-    "lv": "Letônia",
-    "ee": "Estônia",
-    "lu": "Luxemburgo",
-    "mc": "Mônaco",
-    "mt": "Malta",
-    "ad": "Andorra",
-    "is": "Islândia",
+# Mapeamento (Código ISO -> (Nome do País, Região))
+# Regiões:
+# - BR: Brasil (todos os tipos permitidos, exceto anime)
+# - SA_OTHER: Peru, Chile, Colômbia, Bolívia, Venezuela, Argentina, etc. (APENAS Esportes)
+# - NA: EUA, México e Canadá (APENAS Esportes, Notícias e Entretenimento)
+# - EU: Europa (APENAS Esportes e Notícias)
+COUNTRY_REGION_MAP: Dict[str, Tuple[str, str]] = {
+    # Brasil
+    "br": ("Brasil", "BR"),
+    # América do Sul (exceto Brasil) -> Apenas Esportes
+    "pe": ("Peru", "SA_OTHER"),
+    "cl": ("Chile", "SA_OTHER"),
+    "co": ("Colômbia", "SA_OTHER"),
+    "bo": ("Bolívia", "SA_OTHER"),
+    "ve": ("Venezuela", "SA_OTHER"),
+    "ar": ("Argentina", "SA_OTHER"),
+    "uy": ("Uruguai", "SA_OTHER"),
+    "py": ("Paraguai", "SA_OTHER"),
+    "ec": ("Equador", "SA_OTHER"),
+    # América do Norte -> Apenas EUA, México e Canadá (Esportes, Notícias e Entretenimento)
+    "us": ("Estados Unidos", "NA"),
+    "mx": ("México", "NA"),
+    "ca": ("Canadá", "NA"),
+    # Europa -> Apenas Esportes e Notícias
+    "pt": ("Portugal", "EU"),
+    "es": ("Espanha", "EU"),
+    "uk": ("Reino Unido", "EU"),
+    "gb": ("Reino Unido", "EU"),
+    "fr": ("França", "EU"),
+    "de": ("Alemanha", "EU"),
+    "it": ("Itália", "EU"),
+    "nl": ("Países Baixos", "EU"),
+    "be": ("Bélgica", "EU"),
+    "ch": ("Suíça", "EU"),
+    "at": ("Áustria", "EU"),
+    "ie": ("Irlanda", "EU"),
+    "se": ("Suécia", "EU"),
+    "no": ("Noruega", "EU"),
+    "dk": ("Dinamarca", "EU"),
+    "fi": ("Finlândia", "EU"),
+    "pl": ("Polônia", "EU"),
+    "cz": ("República Tcheca", "EU"),
+    "sk": ("Eslováquia", "EU"),
+    "hu": ("Hungria", "EU"),
+    "ro": ("Romênia", "EU"),
+    "bg": ("Bulgária", "EU"),
+    "gr": ("Grécia", "EU"),
+    "hr": ("Croácia", "EU"),
+    "rs": ("Sérvia", "EU"),
+    "si": ("Eslovênia", "EU"),
+    "ua": ("Ucrânia", "EU"),
+    "lt": ("Lituânia", "EU"),
+    "lv": ("Letônia", "EU"),
+    "ee": ("Estônia", "EU"),
+    "lu": ("Luxemburgo", "EU"),
+    "mc": ("Mônaco", "EU"),
+    "mt": ("Malta", "EU"),
+    "ad": ("Andorra", "EU"),
+    "is": ("Islândia", "EU"),
 }
 
-# Palavras-chave para bloquear Oriente Médio / Ásia / África mesmo se sem tvg-id
 MIDDLE_EAST_ASIA_KEYWORDS = (
     "al jazeera", "aljazeera", "al arabiya", "alarabiya", "alkass", "al kass",
     "dubai", "abu dhabi", "sharjah", "bahrain", "kuwait", "oman", "qatar",
@@ -277,7 +284,6 @@ MIDDLE_EAST_ASIA_KEYWORDS = (
     "tpa ", "tvcabo", "zap ", "zimbo", "girassol", "stve", "rtpa",
 )
 
-# Palavras-chave para bloquear canais de Anime / Animação japonesa
 ANIME_KEYWORDS = (
     "anime", "animax", "naruto", "boruto", "one piece", "dragon ball",
     "yu-gi-oh", "yugioh", "beyblade", "bakugan", "inuyasha", "sailor moon",
@@ -301,56 +307,24 @@ TVG_ID_REGEX = re.compile(r'tvg-id="([^"]*)"', re.IGNORECASE)
 TVG_LOGO_REGEX = re.compile(r'tvg-logo="([^"]*)"', re.IGNORECASE)
 COUNTRY_CODE_REGEX = re.compile(r'\.([a-z]{2})(?:@|$)', re.IGNORECASE)
 
-# Detecta alfabetos árabe, hebraico, persa, devanágari, tailandês, CJK (chinês/japonês/coreano)
 NON_WESTERN_SCRIPT_REGEX = re.compile(
     r'[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\u0900-\u097F\u0E00-\u0E7F\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uAC00-\uD7AF]'
 )
 
 
-def extract_country_and_filter(extinf_line: str, channel_name: str, default_country: str) -> Optional[str]:
+def classify_genre(extinf_line: str, channel_name: str, origin: str) -> str:
     """
-    Retorna o nome do país em português se pertencer à América do Sul, América do Norte ou Europa,
-    e não for canal de Anime nem do Oriente Médio. Caso contrário, retorna None.
+    Classifica o tipo do canal em:
+    - 'Esportes'
+    - 'Notícias'
+    - 'Entretenimento'
+    - 'Canais Abertos / Variedades'
+    - 'Cultura e Documentários'
+    - 'Música'
+    - 'Infantil'
+    - 'Outros'
     """
-    lower_name = channel_name.lower()
-    lower_extinf = extinf_line.lower()
-
-    # 1. Bloqueia alfabetos não ocidentais (árabe, chinês, japonês, etc.)
-    if NON_WESTERN_SCRIPT_REGEX.search(channel_name):
-        return None
-
-    # 2. Bloqueia palavras-chave do Oriente Médio / Ásia / África
-    if any(k in lower_name for k in MIDDLE_EAST_ASIA_KEYWORDS):
-        return None
-
-    # 3. Bloqueia canais de Anime
-    if any(k in lower_name or k in lower_extinf for k in ANIME_KEYWORDS):
-        return None
-
-    # 4. Verifica código de país no tvg-id (ex: Canal.br@SD ou Canal.sa@SD)
-    tvg_match = TVG_ID_REGEX.search(extinf_line)
-    tvg_id = tvg_match.group(1) if tvg_match else ""
-    cc_match = COUNTRY_CODE_REGEX.search(tvg_id)
-
-    if cc_match:
-        cc = cc_match.group(1).lower()
-        # Se for canal da Pluto TV com @BR, força Brasil
-        if "@br" in tvg_id.lower() or "brazil" in lower_name or "brasil" in lower_name:
-            return "Brasil"
-        if cc not in ALLOWED_COUNTRIES:
-            return None
-        return ALLOWED_COUNTRIES[cc]
-
-    # Se não tem código ISO no tvg-id, usa o país padrão da lista se disponível
-    if default_country and default_country in ALLOWED_COUNTRIES:
-        return ALLOWED_COUNTRIES[default_country]
-
-    return None
-
-
-def classify_genre(extinf_line: str, channel_name: str, category: str) -> str:
-    """Classifica o tipo detalhado do canal para o relatório e filtros."""
-    if category == "Esportes":
+    if origin == "SPORTS":
         return "Esportes"
 
     match = GROUP_TITLE_REGEX.search(extinf_line)
@@ -358,55 +332,156 @@ def classify_genre(extinf_line: str, channel_name: str, category: str) -> str:
     lower_name = channel_name.lower()
     combined = f"{raw_group} {lower_name}"
 
-    if any(k in combined for k in ("sport", "esporte", "futebol", "soccer", "nfl", "nba", "mlb", "ufc", "fight", "golf", "tennis", "motor", "racing", "f1")):
-        return "Esportes"
-    if any(k in combined for k in ("news", "notícia", "noticia", "jornal", "cnn", "bbc", "fox news", "cnbc", "bloomberg", "globonews", "bandnews", "record news", "sbt news", "jovem pan")):
-        return "Notícias e Jornalismo"
-    if any(k in combined for k in ("movie", "filme", "cinema", "cine", "series", "série", "serie", "novela", "drama", "action", "ação", "comedy", "comédia", "thriller", "terror", "horror", "sci-fi", "western", "romance", "pluto tv cine", "paramount", "hallmark", "amc", "tcm", "syfy", "star trek", "csi", "ncis")):
-        return "Filmes e Séries"
-    if any(k in combined for k in ("music", "música", "musica", "mtv", "vevo", "trace", "stingray", "country", "rock", "pop", "hip hop", "jazz", "hits", "karaoke", "club")):
-        return "Música e Shows"
-    if any(k in combined for k in ("doc", "history", "história", "nature", "natureza", "science", "ciência", "discovery", "nat geo", "smithsonian", "curiosit", "cultura", "educat", "travel", "viagem", "food", "culinária", "cozinha", "home", "casa", "lifestyle")):
-        return "Documentários, Cultura e Estilo de Vida"
-    if any(k in combined for k in ("kids", "infantil", "criança", "junior", "nick", "disney", "cartoon", "baby", "pbs kids", "family", "família")):
-        return "Infantil e Família"
-    if any(k in combined for k in ("entertainment", "entretenimento", "reality", "humor", "game show", "talk", "fofoca", "pop culture", "retrô", "retro", "classic")):
-        return "Entretenimento e Variedades"
+    # Bloqueia canais de vendas/religiosos/clima local de entrarem como entretenimento
+    if any(k in raw_group for k in ("shop", "religious", "weather", "legislative")):
+        if "news" not in raw_group:
+            return "Outros"
 
-    if category in ("Filmes e Séries BR", "Filmes e Séries EUA"):
-        return "Entretenimento e Variedades"
-
-    return "Canais Abertos / TV Regional"
-
-
-def determine_category(extinf_line: str, default_category: str, origin: str) -> str:
-    """
-    Determina a categoria limpa em português dentro das 5 categorias principais da M3U:
-    "Brasil Abertos", "Filmes e Séries BR", "Esportes", "EUA Abertos" e "Filmes e Séries EUA".
-    """
-    if origin in ("BR_MOVIES", "US_MOVIES", "SPORTS"):
-        return default_category
-
-    match = GROUP_TITLE_REGEX.search(extinf_line)
-    raw_group = match.group(1).lower() if match else ""
-
-    if any(k in raw_group for k in ("sport", "esporte", "futebol", "soccer")):
+    if any(k in combined for k in (
+        "sport", "esporte", "futebol", "soccer", "nfl", "nba", "mlb", "nhl", "ufc",
+        "fight", "wrestling", "golf", "tennis", "motor", "racing", "f1", "nascar",
+        "billiard", "poker", "surf", "skate", "boxing", "mma", "dazn", "espn",
+        "fox sports", "cbs sports", "beinsports", "tudn", "tyc", "deport", "ovacion",
+        "teletrak", "win sports", "meridiano",
+    )):
         return "Esportes"
 
-    if any(k in raw_group for k in ("movie", "series", "filme", "série", "cinema", "classic")):
-        if origin == "BR":
+    if any(k in combined for k in (
+        "news", "notícia", "noticia", "jornal", "cnn", "bbc news", "sky news",
+        "fox news", "cnbc", "bloomberg", "msnbc", "nbc news", "cbs news", "abc news",
+        "globonews", "bandnews", "record news", "sbt news", "jovem pan news",
+        "euronews", "france 24", "dw ", "bfm", "sic noticias", "rtp 3", "24h",
+        "weather", "c-span", "reuters", "associated press", "newsmax", "scripps news",
+        "live now", "livenow",
+    )):
+        return "Notícias"
+
+    if any(k in combined for k in (
+        "entertainment", "entretenimento", "movie", "movies", "filme", "filmes",
+        "cinema", "cine", "series", "série", "series", "novela", "drama", "action",
+        "ação", "comedy", "comédia", "humor", "thriller", "terror", "horror",
+        "sci-fi", "western", "romance", "reality", "game show", "talk", "pop culture",
+        "retrô", "retro", "classic", "crime", "mystery", "suspense", "paramount",
+        "hallmark", "amc", "tcm", "syfy", "star trek", "csi", "ncis", "hell's kitchen",
+        "masterchef", "top gear", "failarmy", "pet collective", "nosey", "mtv",
+        "bet ", "vh1", "e!", "bravo", "tlc", "hgtv", "food network", "cooking",
+        "tastemade", "court tv", "law & crime", "ion ", "bounce", "grit", "laff",
+        "me tv", "metv", "antena", "buzzr", "deal or no deal", "family feud",
+        "jeopardy", "wheel of fortune", "price is right", "baywatch", "doctor who",
+        "curiosit", "fofoca", "tv brasileira",
+    )):
+        return "Entretenimento"
+
+    if origin in ("BR_MOVIES", "US_MOVIES"):
+        return "Entretenimento"
+
+    if any(k in combined for k in ("music", "música", "musica", "vevo", "trace", "stingray", "karaoke", "concert")):
+        return "Música"
+
+    if any(k in combined for k in ("doc", "history", "história", "nature", "natureza", "science", "ciência", "discovery", "nat geo", "smithsonian", "cultura", "educat", "travel", "viagem")):
+        return "Cultura e Documentários"
+
+    if any(k in combined for k in ("kids", "infantil", "criança", "junior", "nick", "disney", "cartoon", "baby", "pbs kids", "lego", "ryan", "smurfs", "garfield", "turma da monica")):
+        return "Infantil"
+
+    return "Canais Abertos / Variedades"
+
+
+def filter_and_classify_channel(
+    extinf_line: str,
+    channel_name: str,
+    origin: str,
+    default_country: str,
+) -> Optional[Tuple[str, str, str]]:
+    """
+    Aplica todas as regras de filtragem:
+    - Sem Oriente Médio, Ásia, África, Oceania e sem Anime.
+    - Brasil: Todos os tipos permitidos.
+    - Peru, Chile, Colômbia, Bolívia, Venezuela (e demais da América do Sul): APENAS Esportes.
+    - América do Norte (EUA, México, Canadá): APENAS Notícias, Entretenimento e Esportes.
+    - Europa: APENAS Esportes e Notícias.
+    Retorna (country_name, region_code, genre) ou None se descartado.
+    """
+    lower_name = channel_name.lower()
+    lower_extinf = extinf_line.lower()
+
+    if NON_WESTERN_SCRIPT_REGEX.search(channel_name):
+        return None
+
+    if any(k in lower_name for k in MIDDLE_EAST_ASIA_KEYWORDS):
+        return None
+
+    if any(k in lower_name or k in lower_extinf for k in ANIME_KEYWORDS):
+        return None
+
+    tvg_match = TVG_ID_REGEX.search(extinf_line)
+    tvg_id = tvg_match.group(1) if tvg_match else ""
+    cc_match = COUNTRY_CODE_REGEX.search(tvg_id)
+
+    country_name = None
+    region_code = None
+
+    if cc_match:
+        cc = cc_match.group(1).lower()
+        if "@br" in tvg_id.lower() or "brazil" in lower_name or "brasil" in lower_name:
+            country_name, region_code = ("Brasil", "BR")
+        elif cc in COUNTRY_REGION_MAP:
+            country_name, region_code = COUNTRY_REGION_MAP[cc]
+        else:
+            return None
+    elif default_country and default_country in COUNTRY_REGION_MAP:
+        country_name, region_code = COUNTRY_REGION_MAP[default_country]
+    else:
+        return None
+
+    genre = classify_genre(extinf_line, channel_name, origin)
+
+    # Regra 1: Brasil -> permite todos os gêneros (exceto Outros/Shop indesejados se quiser, mas mantém abertos)
+    if region_code == "BR":
+        if genre == "Outros":
+            genre = "Canais Abertos / Variedades"
+        return country_name, region_code, genre
+
+    # Regra 2: Peru, Chile, Colômbia, Bolívia, Venezuela e demais da América do Sul -> SÓ Esportes
+    if region_code == "SA_OTHER":
+        if genre == "Esportes":
+            return country_name, region_code, genre
+        return None
+
+    # Regra 3: América do Norte (EUA, México, Canadá) -> SÓ Notícias, Entretenimento e Esportes
+    if region_code == "NA":
+        if genre in ("Esportes", "Notícias", "Entretenimento"):
+            return country_name, region_code, genre
+        return None
+
+    # Regra 4: Europa -> SÓ Esportes e Notícias
+    if region_code == "EU":
+        if genre in ("Esportes", "Notícias"):
+            return country_name, region_code, genre
+        return None
+
+    return None
+
+
+def determine_category(genre: str, region_code: str, origin: str) -> str:
+    """Mapeia para as 5 categorias limpas do group-title."""
+    if genre == "Esportes":
+        return "Esportes"
+    if region_code == "BR":
+        if origin == "BR_MOVIES" or genre == "Entretenimento":
             return "Filmes e Séries BR"
-        if origin == "US":
+        return "Brasil Abertos"
+    if region_code == "NA":
+        if origin == "US_MOVIES" or genre == "Entretenimento":
             return "Filmes e Séries EUA"
-
-    return default_category
+        return "EUA Abertos"
+    if region_code == "EU":
+        return "EUA Abertos"
+    return "Esportes"
 
 
 def normalize_extinf(extinf_line: str, category: str) -> Tuple[str, str, str]:
-    """
-    Atualiza o atributo group-title na linha #EXTINF e retorna
-    (linha_extinf_atualizada, nome_do_canal, url_da_logo).
-    """
+    """Atualiza o atributo group-title na linha #EXTINF."""
     line = extinf_line.strip()
     if GROUP_TITLE_REGEX.search(line):
         line = GROUP_TITLE_REGEX.sub(f'group-title="{category}"', line)
@@ -424,10 +499,9 @@ def normalize_extinf(extinf_line: str, category: str) -> Tuple[str, str, str]:
 
 
 def fetch_playlist(source: Dict[str, str]) -> List[Dict[str, str]]:
-    """Baixa uma lista M3U e extrai seus canais aplicando filtro geográfico e anti-anime."""
+    """Baixa uma lista M3U e extrai seus canais aplicando as regras de País e Tipo."""
     name = source["name"]
     url = source["url"]
-    default_cat = source["default_category"]
     origin = source["origin"]
     default_country = source.get("default_country", "")
 
@@ -462,12 +536,12 @@ def fetch_playlist(source: Dict[str, str]) -> List[Dict[str, str]]:
         elif line.startswith("http://") or line.startswith("https://"):
             if current_extinf:
                 ch_name_raw = current_extinf.split(",", 1)[1].strip() if "," in current_extinf else "Canal"
-                country_name = extract_country_and_filter(current_extinf, ch_name_raw, default_country)
-                if country_name is None:
+                res = filter_and_classify_channel(current_extinf, ch_name_raw, origin, default_country)
+                if res is None:
                     filtered_out += 1
                 else:
-                    category = determine_category(current_extinf, default_cat, origin)
-                    genre = classify_genre(current_extinf, ch_name_raw, category)
+                    country_name, region_code, genre = res
+                    category = determine_category(genre, region_code, origin)
                     updated_extinf, channel_name, logo_url = normalize_extinf(current_extinf, category)
                     channels.append(
                         {
@@ -475,6 +549,7 @@ def fetch_playlist(source: Dict[str, str]) -> List[Dict[str, str]]:
                             "category": category,
                             "genre": genre,
                             "country": country_name,
+                            "region": region_code,
                             "logo": logo_url,
                             "extinf": updated_extinf,
                             "extras": "\n".join(extra_directives),
@@ -486,7 +561,7 @@ def fetch_playlist(source: Dict[str, str]) -> List[Dict[str, str]]:
 
     print(
         f"    [+] {len(channels)} canais aprovados em '{name}' "
-        f"({filtered_out} descartados por região/anime)."
+        f"({filtered_out} descartados pelas regras de país/tipo)."
     )
     return channels
 
@@ -562,18 +637,19 @@ def generate_markdown_report(
         lines.append(f"| **{genre}** | {len(ch_list)} |")
 
     lines.extend([
-        "\n## 2. Resumo por País (América do Sul, América do Norte e Europa)",
-        "| País | Quantidade de Canais |",
-        "| :--- | :---: |",
+        "\n## 2. Resumo por País",
+        "| País | Quantidade de Canais | Tipos Mantidos |",
+        "| :--- | :---: | :--- |",
     ])
     for country, ch_list in sorted(by_country.items(), key=lambda x: -len(x[1])):
-        lines.append(f"| **{country}** | {len(ch_list)} |")
+        genres_present = ", ".join(sorted(set(c["genre"] for c in ch_list)))
+        lines.append(f"| **{country}** | {len(ch_list)} | {genres_present} |")
 
     lines.append("\n---\n## 3. Lista Detalhada de Canais por Tipo")
     for genre, ch_list in sorted(by_genre.items(), key=lambda x: -len(x[1])):
         lines.append(f"\n### {genre} ({len(ch_list)} canais)")
         for ch in sorted(ch_list, key=lambda c: (c["country"], c["name"].lower())):
-            lines.append(f"- **{ch['name']}** ({ch['country']} — *{ch['category']}*)")
+            lines.append(f"- **{ch['name']}** ({ch['country']})")
 
     lines.append("\n---\n## 4. Lista Detalhada de Canais por País")
     for country, ch_list in sorted(by_country.items(), key=lambda x: -len(x[1])):
@@ -799,10 +875,10 @@ def generate_html(
     <div class="container">
         <div class="badge">
             <span class="badge-dot"></span>
-            Atualizada Automaticamente a cada 12h (América do Sul, América do Norte e Europa)
+            Atualizada Automaticamente a cada 12h
         </div>
         <h1>Lista M3U Unificada - Grid de Canais</h1>
-        <p class="subtitle">Canais verificados, sem Oriente Médio/Anime, organizados em Grid por Tipo e País.</p>
+        <p class="subtitle">Canais selecionados por País e Tipo (Esporte, Notícias, Entretenimento e Brasil).</p>
 
         <div class="hero-stat">
             <span class="number">{len(active_channels)}</span>
@@ -823,7 +899,7 @@ def generate_html(
 
         <h3 style="margin-bottom: 0.75rem; font-size: 1.15rem;">Catálogo Visual em Grid (<span id="shown-count">{len(active_channels)}</span> canais):</h3>
         <div class="filters">
-            <input type="text" id="search-input" placeholder="Buscar canal (ex: Globo, Band, ESPN, HBO)..." oninput="renderGrid()">
+            <input type="text" id="search-input" placeholder="Buscar canal (ex: Globo, Band, ESPN, CNN)..." oninput="renderGrid()">
             <select id="genre-filter" onchange="renderGrid()">
                 <option value="">Todos os Tipos (Gêneros)</option>
             </select>
@@ -907,17 +983,15 @@ def generate_html(
 def main() -> int:
     start_time = time.time()
     print("=" * 65)
-    print(" INICIANDO UNIFICAÇÃO, FILTRAGEM REGIONAL E LIMPEZA DE LISTAS IPTV")
+    print(" INICIANDO UNIFICAÇÃO E FILTRAGEM FINA POR PAÍS E TIPO")
     print("=" * 65)
 
-    # 1. Incluir canais essenciais (Globo, Band, SBT, Cultura, etc.) + baixar fontes
     raw_channels: List[Dict[str, str]] = list(ESSENTIAL_BR_CHANNELS)
     for source in PLAYLIST_SOURCES:
         raw_channels.extend(fetch_playlist(source))
 
-    print(f"\n[*] Total de canais após filtro regional e anti-anime: {len(raw_channels)}")
+    print(f"\n[*] Total de canais após filtro fino por país/tipo: {len(raw_channels)}")
 
-    # 2. Remover duplicados comparando pela URL do stream
     unique_channels: List[Dict[str, str]] = []
     seen_urls = set()
 
@@ -931,7 +1005,6 @@ def main() -> int:
     print(f"[*] Duplicados removidos: {duplicates_removed}")
     print(f"[*] Canais únicos para verificar disponibilidade: {len(unique_channels)}")
 
-    # 3. Verificação rápida de disponibilidade em paralelo (timeout = 5s)
     print(
         f"\n[*] Testando disponibilidade de {len(unique_channels)} streams "
         f"(timeout={REQUEST_TIMEOUT}s, workers={MAX_WORKERS})..."
@@ -966,7 +1039,6 @@ def main() -> int:
                     f"Ativos até agora: {len(active_channels)}"
                 )
 
-    # 4. Ordenar por categoria e por nome do canal
     cat_rank = {cat: idx for idx, cat in enumerate(CATEGORY_ORDER)}
     active_channels.sort(
         key=lambda c: (cat_rank.get(c["category"], 99), c["name"].lower())
@@ -976,7 +1048,6 @@ def main() -> int:
     for ch in active_channels:
         category_counts[ch["category"]] = category_counts.get(ch["category"], 0) + 1
 
-    # 5. Gerar docs/lista_unificada.m3u, docs/index.html e docs/relatorio_canais.md
     docs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs")
     os.makedirs(docs_dir, exist_ok=True)
 
